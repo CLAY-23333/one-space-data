@@ -1,35 +1,55 @@
-name: Deploy entire repository to GitHub Pages
+name: Update Download Stats and Deploy Pages
 
 on:
-  push:
-    branches: [ main ]  # 替换为您的主分支名称
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
-# 设置 GITHUB_TOKEN 的权限
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# 防止并行部署冲突
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  contents: write
+  pages: write      # 添加 Pages 权限
+  id-token: write   # 添加 id-token 权限
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  update-stats:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4  # 更新到 v4
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Fetch download stats and extract downloads only
+        run: |
+          mkdir -p stats
+          curl -s https://thunderstore.io/api/v1/package-metrics/clay/BetterMap/ | \
+          node -e "
+            const data = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+            const extracted = {
+              downloads: data.downloads
+            };
+            require('fs').writeFileSync('./stats/bettermap.json', JSON.stringify(extracted, null, 2));
+          "
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add stats
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update download stats" && git push)
+      
+      # 添加 Pages 部署步骤
       - name: Setup Pages
-        uses: actions/configure-pages@v4  # 更新到 v4
+        uses: actions/configure-pages@v4
+      
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3  # 确保这是正确的版本
+        uses: actions/upload-pages-artifact@v3
         with:
           path: './'
+      
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4  # 更新到 v4
+        uses: actions/deploy-pages@v4
