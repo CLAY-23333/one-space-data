@@ -1,0 +1,47 @@
+name: Update Download Stats
+
+on:
+  schedule:
+    # 每天运行一次，你可以根据需要调整频率
+    - cron: '0 0 * * *'
+  # 允许手动触发
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout data branch
+        uses: actions/checkout@v3
+        with:
+          ref: data
+          sparse-checkout: |
+            stats
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Fetch download stats and extract downloads only
+        run: |
+          mkdir -p stats
+          curl -s https://thunderstore.io/api/v1/package-metrics/clay/BetterMap/ | \
+          node -e "
+            const data = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+            const extracted = {
+              downloads: data.downloads
+            };
+            require('fs').writeFileSync('./stats/bettermap.json', JSON.stringify(extracted, null, 2));
+          "
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add stats
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update download stats" && git push)
