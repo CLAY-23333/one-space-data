@@ -1,10 +1,9 @@
-name: Deploy entire repository to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]  # 替换为您的主分支名称
+    branches: [ main ]
 
-# 设置 GITHUB_TOKEN 的权限
 permissions:
   contents: read
   pages: write
@@ -12,13 +11,19 @@ permissions:
 
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3  # 更新到 v3
-    
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        # 可以省略 github_token，因为我们设置了 permissions
-        publish_dir: ./  # 发布整个仓库
-        keep_files: false
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: './'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
