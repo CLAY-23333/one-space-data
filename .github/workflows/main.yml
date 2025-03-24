@@ -6,7 +6,9 @@ on:
 
 # 设置 GITHUB_TOKEN 的权限
 permissions:
-  contents: write  # 需要写权限来发布到 gh-pages 分支
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
