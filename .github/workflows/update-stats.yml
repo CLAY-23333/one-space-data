@@ -14,13 +14,9 @@ jobs:
   update-stats:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout data branch
+      - name: Checkout main branch
         uses: actions/checkout@v3
-        with:
-          ref: data
-          sparse-checkout: |
-            stats
-          sparse-checkout-cone-mode: false
+        # 不再指定 ref 和 sparse-checkout，直接检出主分支的全部内容
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
