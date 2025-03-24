@@ -1,13 +1,19 @@
-name: Deploy to GitHub Pages
+name: Deploy entire repository to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]  # 替换为您的主分支名称
 
+# 设置 GITHUB_TOKEN 的权限
 permissions:
   contents: read
   pages: write
   id-token: write
+
+# 防止并行部署冲突
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   deploy:
