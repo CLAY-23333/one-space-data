@@ -1,0 +1,22 @@
+name: Deploy entire repository to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]  # 替换为您的主分支名称
+
+# 设置 GITHUB_TOKEN 的权限
+permissions:
+  contents: write  # 需要写权限来发布到 gh-pages 分支
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3  # 更新到 v3
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        # 可以省略 github_token，因为我们设置了 permissions
+        publish_dir: ./  # 发布整个仓库
+        keep_files: false
